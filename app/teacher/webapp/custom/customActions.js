@@ -1,232 +1,282 @@
 sap.ui.define([
     "sap/ui/core/BusyIndicator",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "sap/m/Dialog",
     "sap/m/Label",
     "sap/m/Input",
-    "sap/m/Button"
-], function (BusyIndicator, MessageToast, Dialog, Label, Input, Button) {
+    "sap/m/Button",
+    "sap/m/Table",
+    "sap/m/Column",
+    "sap/m/ColumnListItem",
+    "sap/m/Text",
+    "sap/ui/model/json/JSONModel"
+], function (
+    BusyIndicator,
+    MessageToast,
+    MessageBox,
+    Dialog,
+    Label,
+    Input,
+    Button,
+    Table,
+    Column,
+    ColumnListItem,
+    Text,
+    JSONModel
+) {
     "use strict";
 
     let oDeptDialog = null;
+    let oSortDeptDialog = null;
 
     return {
 
 
-        deleteStudent: async function () {
+        deleteStudent: function () {
 
-            const extensionAPI = this; 
+            const extensionAPI = this;
 
-            // Get selected rows
-            const selectedContexts = extensionAPI.getSelectedContexts();
+            const oTable = sap.ui.getCore().byId(
+                "sms.teacher::TeachersObjectPage--fe::table::students::LineItem-innerTable"
+            );
 
-            if (!selectedContexts.length) {
-                MessageToast.show("Select a student first.");
+            if (!oTable) {
+                sap.m.MessageToast.show("Students table not found.");
                 return;
             }
 
-            const student = selectedContexts[0].getObject();
-            const studentID = student.ID;
+            const selectedContexts = oTable.getSelectedContexts();
 
-            BusyIndicator.show(200);
-
-            try {
-                await $.ajax({
-                    url: "/school/deleteStudent",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ studentID })
-                });
-
-                MessageToast.show("Student deleted successfully!");
-
-                // refresh the table
-                extensionAPI.refresh();
-            }
-            catch (err) {
-                console.error("Delete error:", err.responseText);
-                MessageToast.show("Failed to delete student.");
+            if (!selectedContexts.length) {
+                sap.m.MessageToast.show("Select a student first.");
+                return;
             }
 
-            BusyIndicator.hide();
+            const studentID = selectedContexts[0].getObject().ID;
+
+            sap.ui.core.BusyIndicator.show(100);
+
+            $.ajax({
+                url: "/school/deleteStudent",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ studentID }),
+
+                success: function () {
+                    sap.ui.core.BusyIndicator.hide();
+                    sap.m.MessageToast.show("Student deleted successfully!");
+                    oTable.getModel().refresh(true);
+                },
+
+                error: function (err) {
+                    sap.ui.core.BusyIndicator.hide();
+                    console.error(err);
+                    sap.m.MessageToast.show("Failed to delete student.");
+                }
+            });
         },
 
         openDeptDialog: function () {
 
+            let that = this;
+
             if (!oDeptDialog) {
-                oDeptDialog = new Dialog({
+
+                oDeptDialog = new sap.m.Dialog({
                     title: "Create Department",
-                    contentWidth: "400px",
+                    contentWidth: "500px",
                     draggable: true,
                     resizable: true,
 
                     content: [
-                        new Label({ text: "Name" }),
-                        new Input("deptNameInput"),
+                        new sap.m.Label({ text: "Name" }),
+                        new sap.m.Input("deptNameInput"),
 
-                        new Label({ text: "Description" }),
-                        new Input("deptDescInput")
+                        new sap.m.Label({ text: "Description" }),
+                        new sap.m.Input("deptDescInput")
                     ],
 
-                    beginButton: new Button({
+                    beginButton: new sap.m.Button({
                         text: "Create",
                         type: "Emphasized",
-                        press: this.createDepartment.bind(this)
+
+                        press: function () {
+
+                            const name = sap.ui.getCore().byId("deptNameInput").getValue();
+                            const description = sap.ui.getCore().byId("deptDescInput").getValue();
+
+                            if (!name) {
+                                sap.m.MessageToast.show("Name is required");
+                                return;
+                            }
+
+                            sap.ui.core.BusyIndicator.show(100);
+
+                            $.ajax({
+                                url: "/school/Departments",
+                                type: "POST",
+                                contentType: "application/json",
+                                data: JSON.stringify({ name, description }),
+
+                                success: function () {
+                                    sap.ui.core.BusyIndicator.hide();
+                                    sap.m.MessageToast.show("Department created!");
+
+                                    sap.ui.getCore().byId("deptNameInput").setValue("");
+                                    sap.ui.getCore().byId("deptDescInput").setValue("");
+
+                                    oDeptDialog.close();
+                                    sap.ui.getCore().getModel().refresh(true);
+                                },
+
+                                error: function () {
+                                    sap.ui.core.BusyIndicator.hide();
+                                    sap.m.MessageToast.show("Error creating department.");
+                                }
+                            });
+
+                        }
                     }),
 
-                    endButton: new Button({
+                    endButton: new sap.m.Button({
                         text: "Cancel",
-                        press: function () { oDeptDialog.close(); }
-                    })
+                        press: function () {
+                            oDeptDialog.close();
+                        }
+                    }),
                 });
             }
 
             oDeptDialog.open();
         },
 
-        createDepartment: function () {
+        openSortStudentsDialog: function () {
 
-            const name = sap.ui.getCore().byId("deptNameInput").getValue();
-            const description = sap.ui.getCore().byId("deptDescInput").getValue();
+            const extensionAPI = this;
+            const ctx = extensionAPI.getBindingContext();
 
-            if (!name) {
-                MessageToast.show("Name is required");
+            if (!ctx) {
+                sap.m.MessageToast.show("No teacher selected.");
                 return;
             }
 
-            BusyIndicator.show(100);
+            const teacherID = ctx.getObject().ID;
 
+            sap.ui.core.BusyIndicator.show(100);
+
+            // Fetch students belonging to this teacher
             $.ajax({
-                url: "/school/Departments",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    name: name,
-                    description: description
-                }),
+                url: `/school/Students?$filter=teacher_ID eq '${teacherID}'&$orderby=name asc`,
+                type: "GET",
+                dataType: "json",
 
-                success: function () {
-                    BusyIndicator.hide();
-                    MessageToast.show("Department created!");
+                success: function (data) {
+                    sap.ui.core.BusyIndicator.hide();
 
-                    sap.ui.getCore().byId("deptNameInput").setValue("");
-                    sap.ui.getCore().byId("deptDescInput").setValue("");
-                    oDeptDialog.close();
+                    if (!data.value || data.value.length === 0) {
+                        sap.m.MessageToast.show("No students found.");
+                        return;
+                    }
 
-                    // Refresh main FE model
-                    const oModel = sap.ui.getCore().getModel();
-                    oModel.refresh();
+                    // Build MessageBox text
+                    let text = "📘 Sorted Students (By Name)\n\n";
+
+                    data.value.forEach((s, index) => {
+                        text += `${index + 1}. ${s.name}  
+                        Roll No: ${s.rollNumber}
+                        Age: ${s.age}
+                        City: ${s.address}`;
+                    });
+                    // Show in MessageBox (scrollable)
+                    sap.m.MessageBox.information(text, {
+                        title: "Sorted Students",
+                        styleClass: "sapUiSizeCompact",
+                        contentWidth: "400px"
+                    });
                 },
 
-                error: function () {
-                    BusyIndicator.hide();
-                    MessageToast.show("Failed to create department.");
+                error: function (err) {
+                    sap.ui.core.BusyIndicator.hide();
+                    sap.m.MessageToast.show("Failed to load student data.");
+                    console.error(err);
                 }
             });
         },
 
-        openEditStudentDialog: function () {
+        openSortDepartmentsDialog: function () {
+            const that = this;
 
-            const ext = this; // ExtensionAPI
-            const ctx = ext.getBindingContext();
+            sap.ui.core.BusyIndicator.show(100);
 
-            if (!ctx) {
-                MessageToast.show("No student loaded.");
-                return;
-            }
+            $.ajax({
+                url: "/school/Departments?$orderby=name asc",
+                type: "GET",
+                dataType: "json",
 
-            const student = ctx.getObject();
+                success: function (data) {
+                    sap.ui.core.BusyIndicator.hide();
 
-            if (!oEditDialog) {
-                oEditDialog = new Dialog({
-                    title: "Edit Student",
-                    contentWidth: "400px",
+                    if (!data.value || data.value.length === 0) {
+                        sap.m.MessageToast.show("No departments found.");
+                        return;
+                    }
 
-                    content: [
-                        new Label({ text: "Name" }),
-                        new Input("editName"),
+                    // JSON Model
+                    const oModel = new sap.ui.model.json.JSONModel(data.value);
 
-                        new Label({ text: "Age" }),
-                        new Input("editAge"),
+                    // Create dialog only once
+                    if (!oSortDeptDialog) {
+                        oSortDeptDialog = new sap.m.Dialog({
+                            title: "Sorted Departments",
+                            contentWidth: "450px",
+                            contentHeight: "300px",
+                            horizontalScrolling: false,
+                            verticalScrolling: true,
+                            draggable: true,
+                            resizable: true,
 
-                        new Label({ text: "Address" }),
-                        new Input("editAddress"),
+                            content: [
+                                new sap.m.Table({
+                                    inset: false,
+                                    columns: [
+                                        new sap.m.Column({ header: new sap.m.Label({ text: "Name" }) }),
+                                        new sap.m.Column({ header: new sap.m.Label({ text: "Description" }) })
+                                    ],
+                                    items: {
+                                        path: "/",
+                                        template: new sap.m.ColumnListItem({
+                                            cells: [
+                                                new sap.m.Text({ text: "{name}" }),
+                                                new sap.m.Text({ text: "{description}" })
+                                            ]
+                                        })
+                                    }
+                                })
+                            ],
 
-                        new Label({ text: "Grade" }),
-                        new Input("editGrade"),
+                            beginButton: new sap.m.Button({
+                                text: "Close",
+                                press: function () {
+                                    oSortDeptDialog.close();
+                                }
+                            })
+                        });
+                    }
 
-                        new Label({ text: "Parent Name" }),
-                        new Input("editParent"),
+                    // Update model before opening dialog
+                    oSortDeptDialog.getContent()[0].setModel(oModel);
 
-                        new Label({ text: "Phone" }),
-                        new Input("editPhone"),
+                    oSortDeptDialog.open();
+                },
 
-                        new Label({ text: "Email" }),
-                        new Input("editEmail")
-                    ],
-
-                    beginButton: new Button({
-                        text: "Save",
-                        type: "Emphasized",
-                        press: function () {
-                            ext.updateStudentDetails(student.ID);
-                        }
-                    }),
-
-                    endButton: new Button({
-                        text: "Cancel",
-                        press: function () {
-                            oEditDialog.close();
-                        }
-                    })
-                });
-            }
-
-            // Load values into dialog
-            sap.ui.getCore().byId("editName").setValue(student.name);
-            sap.ui.getCore().byId("editAge").setValue(student.age);
-            sap.ui.getCore().byId("editAddress").setValue(student.address);
-            sap.ui.getCore().byId("editGrade").setValue(student.grade);
-            sap.ui.getCore().byId("editParent").setValue(student.parentName);
-            sap.ui.getCore().byId("editPhone").setValue(student.phone);
-            sap.ui.getCore().byId("editEmail").setValue(student.email);
-
-            oEditDialog.open();
-        },
-
-
-        updateStudentDetails: async function (ID) {
-
-            BusyIndicator.show(200);
-
-            const payload = {
-                ID,
-                name: sap.ui.getCore().byId("editName").getValue(),
-                age: parseInt(sap.ui.getCore().byId("editAge").getValue()),
-                address: sap.ui.getCore().byId("editAddress").getValue(),
-                grade: sap.ui.getCore().byId("editGrade").getValue(),
-                parentName: sap.ui.getCore().byId("editParent").getValue(),
-                phone: sap.ui.getCore().byId("editPhone").getValue(),
-                email: sap.ui.getCore().byId("editEmail").getValue()
-            };
-
-            try {
-                await $.ajax({
-                    url: "/school/updateStudent",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(payload)
-                });
-
-                MessageToast.show("Student updated successfully!");
-                this.refresh();  // ExtensionAPI refresh
-
-            } catch (err) {
-                console.error(err);
-                MessageToast.show("Failed to update student.");
-            }
-
-            BusyIndicator.hide();
+                error: function (err) {
+                    sap.ui.core.BusyIndicator.hide();
+                    console.error(err);
+                    sap.m.MessageToast.show("Failed to load departments.");
+                }
+            });
         }
+
     };
 });

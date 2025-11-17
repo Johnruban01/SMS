@@ -8,20 +8,5 @@ service SchoolService @(path:'/school') {
     
     action deleteStudent(
         studentID : UUID
-    ) returns Boolean;
-
-   action updateStudent(
-    ID          : UUID,
-    rollNumber  : Integer,
-    name        : String,
-    age         : Integer,
-    address     : String,
-    grade       : String,
-    parentName  : String,
-    phone       : String,
-    email       : String
-) returns Students;
-
-    
-   
+    ) returns Boolean;   
 }

@@ -102,11 +102,6 @@
           "pattern": "Departments({key})/teachers({key2})/students({key3}):?query:",
           "name": "StudentsObjectPage",
           "target": "StudentsObjectPage"
-        },
-        {
-          "pattern": "Departments({key})/teachers({key2})/students({key3})/details({key4}):?query:",
-          "name": "StudentDetailsObjectPage",
-          "target": "StudentDetailsObjectPage"
         }
       ],
       "targets": {
@@ -136,6 +131,12 @@
                       "id": "createDepartmentBtn",
                       "text": "Create Department",
                       "press": "sms.teacher.custom.customActions.openDeptDialog",
+                      "requiresSelection": false
+                    },
+                    "sortDeptBtn": {
+                      "id": "sortDeptBtn",
+                      "text": "Sort Department",
+                      "press": "sms.teacher.custom.customActions.openSortDepartmentsDialog",
                       "requiresSelection": false
                     }
                   }
@@ -180,6 +181,12 @@
               "controlConfiguration": {
                 "students/@com.sap.vocabularies.UI.v1.LineItem": {
                   "actions": {
+                    "sortStudentsBtn": {
+                      "id": "sortStudentsBtn",
+                      "text": "Sort Students",
+                      "press": "sms.teacher.custom.customActions.openSortStudentsDialog",
+                      "requiresSelection": false
+                    },
                     "deleteStudentBtn": {
                       "id": "deleteStudentBtn",
                       "text": "Delete Student",
@@ -215,17 +222,6 @@
                   "enabled": true
                 }
               }
-            }
-          }
-        },
-        "StudentDetailsObjectPage": {
-          "type": "Component",
-          "id": "StudentDetailsObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "editableHeaderContent": false,
-              "contextPath": "/StudentDetails"
             }
           }
         }
