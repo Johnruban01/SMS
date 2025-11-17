@@ -135,7 +135,7 @@
                     "createDepartmentBtn": {
                       "id": "createDepartmentBtn",
                       "text": "Create Department",
-                     "press": "sms.teacher.custom.customActions.openDeptDialog",
+                      "press": "sms.teacher.custom.customActions.openDeptDialog",
                       "requiresSelection": false
                     }
                   }
@@ -205,6 +205,14 @@
                   "detail": {
                     "route": "StudentDetailsObjectPage"
                   }
+                }
+              },
+              "footerActions": {
+                "editStudentBtn": {
+                  "id": "editStudentBtn",
+                  "text": "Edit Student",
+                  "press": "sms.teacher.custom.customActions.openEditStudentDialog",
+                  "enabled": true
                 }
               }
             }

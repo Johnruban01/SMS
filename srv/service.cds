@@ -10,17 +10,18 @@ service SchoolService @(path:'/school') {
         studentID : UUID
     ) returns Boolean;
 
-    action updateStudent(
-        studentID : UUID,
-        name      : String,
-        age       : Integer,
-        address   : String
-    ) returns Students;
+   action updateStudent(
+    ID          : UUID,
+    rollNumber  : Integer,
+    name        : String,
+    age         : Integer,
+    address     : String,
+    grade       : String,
+    parentName  : String,
+    phone       : String,
+    email       : String
+) returns Students;
 
-    action createTeacher(
-        name        : String,
-        subject     : String,
-        experience  : Integer,
-        departmentID: UUID
-    ) returns Teachers;
+    
+   
 }

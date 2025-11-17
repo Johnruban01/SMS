@@ -7,5 +7,25 @@ module.exports = srv => {
 
         return true;
     });
+    
+
+    srv.on("updateStudent", async req => {
+    const data = req.data;
+
+    await UPDATE("school.Students")
+        .set({
+            rollNumber : data.rollNumber,
+            name       : data.name,
+            age        : data.age,
+            address    : data.address,
+            grade      : data.grade,
+            parentName : data.parentName,
+            phone      : data.phone,
+            email      : data.email
+        })
+        .where({ ID: data.ID });
+
+    return true;
+});
 
 };
