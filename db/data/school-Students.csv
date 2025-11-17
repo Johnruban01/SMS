@@ -1,0 +1,11 @@
+ID;rollNumber;name;age;address;grade;parentName;phone;email;teacher_ID
+11111111-1111-1111-1111-111111111111;101;Arun Kumar;18;Chennai;A;Kumar;9876543210;arun@example.com;aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1
+11111111-1111-1111-1111-222222222222;102;Priya Singh;19;Chennai;B;Singh;9876500000;priya@example.com;aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1
+
+22222222-2222-2222-2222-111111111111;201;Rahul Sharma;20;Bangalore;A;Sharma;9090909090;rahul@example.com;aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaa2
+
+33333333-3333-3333-3333-111111111111;301;Meenakshi Rao;18;Kochi;A;Rao;9800001111;meenakshi@example.com;bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbb1
+33333333-3333-3333-3333-222222222222;302;Jeevan Nair;19;Kochi;B;Nair;9800002222;jeevan@example.com;bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbb1
+
+44444444-4444-4444-4444-111111111111;401;Harsha Patel;20;Delhi;A;Patel;9898989898;harsha@example.com;ccccccc1-cccc-cccc-cccc-ccccccccccc1
+44444444-4444-4444-4444-222222222222;402;Sneha Mehta;21;Mumbai;A;Mehta;9898998899;sneha@example.com;ccccccc2-cccc-cccc-cccc-ccccccccccc2
